@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
-import { Search, Plus, User, Edit, Eye, Power, PowerOff, Trash2, Contact } from 'lucide-react';
+import { Search, Plus, Edit, Eye, Power, PowerOff, Trash2, Contact, ChevronLeft, ChevronRight } from 'lucide-react';
 import MemberCard from '../components/MemberCard';
 
 function Members() {
@@ -14,19 +14,27 @@ function Members() {
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({ full_name: '', sex: 'Homme', phone: '', photo: '' });
   const [cardMember, setCardMember] = useState(null);
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState(null);
+  const PAGE_SIZE = 20;
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchMembers();
+    setPage(1);
   }, [search, statusFilter]);
+
+  useEffect(() => {
+    fetchMembers();
+  }, [search, statusFilter, page]);
 
   const fetchMembers = async () => {
     try {
-      const params = {};
+      const params = { page, limit: PAGE_SIZE };
       if (search) params.search = search;
       if (statusFilter) params.status = statusFilter;
       const res = await api.get('/members', { params });
-      setMembers(res.data);
+      setMembers(res.data.data);
+      setPagination(res.data.pagination);
     } catch (err) {
       console.error(err);
     }
@@ -132,8 +140,8 @@ function Members() {
         </button>
       </div>
 
-      <div className="flex gap-3">
-        <div className="relative flex-1 max-w-md">
+      <div className="flex flex-wrap gap-3">
+        <div className="relative flex-1 min-w-[200px] max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             type="text"
@@ -299,6 +307,19 @@ function Members() {
           </tbody>
         </table>
       </div>
+      {pagination && pagination.totalPages > 1 && (
+        <div className="flex items-center justify-between text-sm text-gray-600">
+          <span>{pagination.total} adhérent{pagination.total > 1 ? 's' : ''} — page {pagination.page}/{pagination.totalPages}</span>
+          <div className="flex gap-2">
+            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1} className="btn-secondary px-3 py-1.5 disabled:opacity-40">
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))} disabled={page >= pagination.totalPages} className="btn-secondary px-3 py-1.5 disabled:opacity-40">
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
       {cardMember && <MemberCard member={cardMember} onClose={() => setCardMember(null)} />}
     </div>
   );

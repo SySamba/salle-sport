@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import ErrorBoundary from './components/ErrorBoundary';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -11,6 +12,7 @@ import Attendance from './pages/Attendance';
 import Reports from './pages/Reports';
 import Users from './pages/Users';
 import MemberSpace from './pages/MemberSpace';
+import NotFound from './pages/NotFound';
 
 function ProtectedRoute({ children, adminOnly, memberOnly, allowedRoles }) {
   const { user, loading } = useAuth();
@@ -37,16 +39,18 @@ function AppRoutes() {
         <Route path="reports" element={<ProtectedRoute allowedRoles={['admin', 'responsable']}><Reports /></ProtectedRoute>} />
         <Route path="users" element={<ProtectedRoute adminOnly><Users /></ProtectedRoute>} />
       </Route>
-      <Route path="*" element={<Navigate to="/" />} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }
 
 function App() {
   return (
-    <AuthProvider>
-      <AppRoutes />
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 

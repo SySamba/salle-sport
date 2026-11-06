@@ -1,6 +1,7 @@
 const express = require('express');
 const pool = require('../config/database');
 const { authenticate, authorize } = require('../middleware/auth');
+const { validate, idParam, subscriptionCreate } = require('../middleware/validators');
 
 const router = express.Router();
 router.use(authenticate);
@@ -34,7 +35,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', subscriptionCreate, validate, async (req, res) => {
   try {
     const { member_id, plan_id, start_date } = req.body;
     const [planRows] = await pool.query('SELECT duration_days, price FROM plans WHERE id = ?', [plan_id]);
@@ -67,7 +68,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-router.put('/:id/renew', async (req, res) => {
+router.put('/:id/renew', idParam, validate, async (req, res) => {
   try {
     const [subRows] = await pool.query('SELECT * FROM subscriptions WHERE id = ?', [req.params.id]);
     if (subRows.length === 0) return res.status(404).json({ message: 'Abonnement non trouvé' });
@@ -95,7 +96,7 @@ router.put('/:id/renew', async (req, res) => {
   }
 });
 
-router.put('/:id/cancel', authorize(['admin', 'responsable']), async (req, res) => {
+router.put('/:id/cancel', authorize(['admin', 'responsable']), idParam, validate, async (req, res) => {
   try {
     await pool.query('UPDATE subscriptions SET status = "Annule" WHERE id = ?', [req.params.id]);
     res.json({ message: 'Abonnement annulé' });

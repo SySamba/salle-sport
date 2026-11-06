@@ -1,20 +1,29 @@
 import { useAuth } from '../context/AuthContext';
-import { Bell, User } from 'lucide-react';
+import { Bell, Menu, User } from 'lucide-react';
 
-function Header() {
+function Header({ onMenuClick }) {
   const { user } = useAuth();
 
   return (
-    <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 no-print">
-      <div>
-        <h2 className="text-lg font-semibold text-gray-800">
-          Bonjour, {user?.full_name || 'Utilisateur'}
-        </h2>
-        <p className="text-xs text-gray-500">
-          {new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-        </p>
+    <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-6 no-print">
+      <div className="flex items-center gap-3 min-w-0">
+        <button
+          onClick={onMenuClick}
+          className="lg:hidden p-2 -ml-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+          aria-label="Ouvrir le menu"
+        >
+          <Menu className="w-6 h-6" />
+        </button>
+        <div className="min-w-0">
+          <h2 className="text-base sm:text-lg font-semibold text-gray-800 truncate">
+            Bonjour, {user?.full_name || 'Utilisateur'}
+          </h2>
+          <p className="text-xs text-gray-500 hidden sm:block">
+            {new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+          </p>
+        </div>
       </div>
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 sm:gap-4">
         <button className="relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
           <Bell className="w-5 h-5" />
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>

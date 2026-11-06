@@ -232,8 +232,8 @@ function Gestion() {
       {/* Members Tab */}
       {activeTab === 'members' && (
         <div className="space-y-4">
-          <div className="flex gap-3">
-            <div className="relative flex-1 max-w-md">
+          <div className="flex flex-wrap gap-3">
+            <div className="relative flex-1 min-w-[200px] max-w-md">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input type="text" placeholder="Rechercher..." className="input pl-10" value={memberSearch} onChange={e => setMemberSearch(e.target.value)} onKeyUp={fetchMembers} />
             </div>

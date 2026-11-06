@@ -3,10 +3,11 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const pool = require('../config/database');
 const { authenticate } = require('../middleware/auth');
+const { validate, login, memberLogin } = require('../middleware/validators');
 
 const router = express.Router();
 
-router.post('/login', async (req, res) => {
+router.post('/login', login, validate, async (req, res) => {
   try {
     const { username, password } = req.body;
     const [rows] = await pool.query('SELECT * FROM users WHERE username = ? AND is_active = 1', [username]);
@@ -46,7 +47,7 @@ router.get('/me', authenticate, async (req, res) => {
 });
 
 // Member login (phone + password)
-router.post('/member-login', async (req, res) => {
+router.post('/member-login', memberLogin, validate, async (req, res) => {
   try {
     const { phone, password } = req.body;
     const [rows] = await pool.query('SELECT * FROM members WHERE phone = ? AND status = "Actif"', [phone]);
@@ -84,7 +85,7 @@ router.post('/member-login', async (req, res) => {
 // Get current member profile
 router.get('/member-me', authenticate, async (req, res) => {
   try {
-    const [rows] = await pool.query('SELECT id, member_number, first_name, last_name, sex, phone, address, photo, status FROM members WHERE id = ?', [req.user.id]);
+    const [rows] = await pool.query('SELECT id, member_number, qr_code, first_name, last_name, sex, phone, address, photo, status FROM members WHERE id = ?', [req.user.id]);
     if (rows.length === 0) return res.status(404).json({ message: 'Adhérent non trouvé' });
     res.json(rows[0]);
   } catch (err) {

@@ -105,22 +105,10 @@ function AccessControl() {
     setAccessStatus(null);
 
     try {
-      const res = await api.get(`/members/qr/${encodeURIComponent(qrData)}`);
-      const { member, subscription } = res.data;
-
-      const today = new Date().toLocaleDateString('en-CA');
-      if (member.status !== 'Actif') {
-        setAccessStatus({ allowed: false, reason: 'Adhérent désactivé', member, subscription });
-      } else if (!subscription) {
-        setAccessStatus({ allowed: false, reason: 'Aucun abonnement actif', member, subscription });
-      } else if (subscription.end_date < today) {
-        setAccessStatus({ allowed: false, reason: 'Abonnement expiré', member, subscription });
-      } else {
-        setAccessStatus({ allowed: true, member, subscription, time: new Date().toLocaleTimeString('fr-FR') });
-        await api.post('/attendance', { member_id: member.id });
-      }
+      const res = await api.post('/access/verify', { qr: qrData });
+      setAccessStatus({ ...res.data, time: new Date().toLocaleTimeString('fr-FR') });
     } catch (err) {
-      setAccessStatus({ allowed: false, reason: 'QR Code invalide' });
+      setAccessStatus({ allowed: false, reason: err.response?.data?.message || 'QR Code invalide' });
     } finally {
       setLoading(false);
     }
@@ -130,18 +118,22 @@ function AccessControl() {
     setLoading(true);
     setAccessStatus(null);
     try {
-      const subRes = await api.get(`/members/${member.id}`, { signal });
-      const today = new Date().toLocaleDateString('en-CA');
-      const subscription = subRes.data.subscriptions.find(s => s.status === 'Actif' && s.end_date >= today);
+      const res = await api.post('/access/verify', { qr: member.member_number }, { signal });
+      setAccessStatus({ ...res.data, time: new Date().toLocaleTimeString('fr-FR') });
+    } catch (err) {
+      if (err.name === 'CanceledError' || err.code === 'ERR_CANCELED') return;
+      setAccessStatus({ allowed: false, reason: 'Erreur de vérification' });
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      if (member.status !== 'Actif') {
-        setAccessStatus({ allowed: false, reason: 'Adhérent désactivé', member, subscription: subRes.data.subscriptions[0] || null });
-      } else if (!subscription) {
-        setAccessStatus({ allowed: false, reason: 'Aucun abonnement actif', member, subscription: subRes.data.subscriptions[0] || null });
-      } else {
-        setAccessStatus({ allowed: true, member, subscription, time: new Date().toLocaleTimeString('fr-FR') });
-        await api.post('/attendance', { member_id: member.id });
-      }
+  const verifyByPhone = async (phone, signal) => {
+    setLoading(true);
+    setAccessStatus(null);
+    try {
+      const res = await api.post('/access/verify', { phone }, { signal });
+      setAccessStatus({ ...res.data, time: new Date().toLocaleTimeString('fr-FR') });
     } catch (err) {
       if (err.name === 'CanceledError' || err.code === 'ERR_CANCELED') return;
       setAccessStatus({ allowed: false, reason: 'Erreur de vérification' });
@@ -158,7 +150,7 @@ function AccessControl() {
       return;
     }
     try {
-      const res = await api.get('/members', { params: { search: digits }, signal });
+      const res = await api.get('/members/search', { params: { q: digits }, signal });
       const matches = res.data
         .filter(m => m.phone && m.phone.replace(/\s/g, '').includes(digits))
         .slice(0, 8);
@@ -212,17 +204,21 @@ function AccessControl() {
   };
 
   const searchMember = async (query, signal) => {
+    if (searchMode === 'phone') {
+      await verifyByPhone(query, signal);
+      return;
+    }
     setLoading(true);
     setAccessStatus(null);
     try {
-      const membersRes = await api.get('/members', { params: { search: query }, signal });
+      const membersRes = await api.get('/members/search', { params: { q: query }, signal });
       if (membersRes.data.length === 0) {
         setAccessStatus({ allowed: false, reason: 'Adhérent non trouvé' });
         setLoading(false);
         return;
       }
-      const member = membersRes.data[0];
-      await verifyMember(member, signal);
+      const exact = membersRes.data.find(m => m.member_number.toLowerCase() === query.toLowerCase()) || membersRes.data[0];
+      await verifyMember(exact, signal);
     } catch (err) {
       if (err.name === 'CanceledError' || err.code === 'ERR_CANCELED') return;
       setAccessStatus({ allowed: false, reason: 'Erreur de recherche' });

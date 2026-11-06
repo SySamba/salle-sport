@@ -109,7 +109,7 @@ function MemberDetail() {
               </button>
             </div>
             {showSubForm && (
-              <form onSubmit={handleAddSub} className="grid grid-cols-3 gap-3 mb-4 p-3 bg-primary-50 rounded-lg no-print">
+              <form onSubmit={handleAddSub} className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4 p-3 bg-primary-50 rounded-lg no-print">
                 <select className="input" value={subForm.plan_id} onChange={e => setSubForm({...subForm, plan_id: e.target.value})} required>
                   <option value="">Formule</option>
                   {plans.map(p => <option key={p.id} value={p.id}>{p.name} ({formatPrice(p.price)} FCFA)</option>)}
@@ -150,7 +150,7 @@ function MemberDetail() {
               </button>
             </div>
             {showPayForm && (
-              <form onSubmit={handleAddPay} className="grid grid-cols-4 gap-3 mb-4 p-3 bg-green-50 rounded-lg no-print">
+              <form onSubmit={handleAddPay} className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4 p-3 bg-green-50 rounded-lg no-print">
                 <input type="number" className="input" placeholder="Montant" value={payForm.amount} onChange={e => setPayForm({...payForm, amount: e.target.value})} required />
                 <input type="date" className="input" value={payForm.payment_date} onChange={e => setPayForm({...payForm, payment_date: e.target.value})} required />
                 <select className="input" value={payForm.payment_method} onChange={e => setPayForm({...payForm, payment_method: e.target.value})}>

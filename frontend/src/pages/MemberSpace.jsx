@@ -99,7 +99,7 @@ function MemberSpace() {
           </h3>
           <div className="flex flex-col items-center">
             <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-              <QRCodeSVG value={member.member.member_number} size={180} />
+              <QRCodeSVG value={member.member.qr_code || member.member.member_number} size={180} />
             </div>
             <p className="text-sm text-gray-500 mt-3 text-center max-w-xs">
               Présentez ce QR Code à l'entrée de la salle.

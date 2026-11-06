@@ -32,3 +32,10 @@ Thumbs.db
 # Éditeurs
 .vscode/
 .idea/
+
+# Sauvegardes locales
+*.zip
+backend 2*/
+
+# Tests
+coverage/

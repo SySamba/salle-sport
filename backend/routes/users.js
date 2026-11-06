@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const pool = require('../config/database');
 const { authenticate, authorize } = require('../middleware/auth');
+const { validate, idParam, userCreate, userUpdate, passwordReset } = require('../middleware/validators');
 
 const router = express.Router();
 router.use(authenticate);
@@ -15,7 +16,7 @@ router.get('/', authorize(['admin']), async (req, res) => {
   }
 });
 
-router.post('/', authorize(['admin']), async (req, res) => {
+router.post('/', authorize(['admin']), userCreate, validate, async (req, res) => {
   try {
     const { username, password, full_name, email, role } = req.body;
     const hashed = await bcrypt.hash(password, 10);
@@ -30,7 +31,7 @@ router.post('/', authorize(['admin']), async (req, res) => {
   }
 });
 
-router.put('/:id', authorize(['admin']), async (req, res) => {
+router.put('/:id', authorize(['admin']), idParam, userUpdate, validate, async (req, res) => {
   try {
     const { full_name, email, role, is_active } = req.body;
     await pool.query(
@@ -44,7 +45,7 @@ router.put('/:id', authorize(['admin']), async (req, res) => {
   }
 });
 
-router.put('/:id/reset-password', authorize(['admin']), async (req, res) => {
+router.put('/:id/reset-password', authorize(['admin']), idParam, passwordReset, validate, async (req, res) => {
   try {
     const { password } = req.body;
     const hashed = await bcrypt.hash(password, 10);

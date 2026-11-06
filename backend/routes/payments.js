@@ -1,6 +1,7 @@
 const express = require('express');
 const pool = require('../config/database');
 const { authenticate } = require('../middleware/auth');
+const { validate, paymentCreate } = require('../middleware/validators');
 
 const router = express.Router();
 router.use(authenticate);
@@ -28,7 +29,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', paymentCreate, validate, async (req, res) => {
   try {
     const { member_id, subscription_id, amount, payment_date, payment_method, notes } = req.body;
     const [result] = await pool.query(
